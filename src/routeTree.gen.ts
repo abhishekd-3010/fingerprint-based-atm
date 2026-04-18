@@ -9,38 +9,75 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginFingerprintRouteImport } from './routes/login.fingerprint'
+import { Route as LoginCardRouteImport } from './routes/login.card'
 
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginFingerprintRoute = LoginFingerprintRouteImport.update({
+  id: '/login/fingerprint',
+  path: '/login/fingerprint',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginCardRoute = LoginCardRouteImport.update({
+  id: '/login/card',
+  path: '/login/card',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/login/card': typeof LoginCardRoute
+  '/login/fingerprint': typeof LoginFingerprintRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/login/card': typeof LoginCardRoute
+  '/login/fingerprint': typeof LoginFingerprintRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/login/card': typeof LoginCardRoute
+  '/login/fingerprint': typeof LoginFingerprintRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/dashboard' | '/login/card' | '/login/fingerprint'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/dashboard' | '/login/card' | '/login/fingerprint'
+  id: '__root__' | '/' | '/dashboard' | '/login/card' | '/login/fingerprint'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  LoginCardRoute: typeof LoginCardRoute
+  LoginFingerprintRoute: typeof LoginFingerprintRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +85,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login/fingerprint': {
+      id: '/login/fingerprint'
+      path: '/login/fingerprint'
+      fullPath: '/login/fingerprint'
+      preLoaderRoute: typeof LoginFingerprintRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login/card': {
+      id: '/login/card'
+      path: '/login/card'
+      fullPath: '/login/card'
+      preLoaderRoute: typeof LoginCardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  LoginCardRoute: LoginCardRoute,
+  LoginFingerprintRoute: LoginFingerprintRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
