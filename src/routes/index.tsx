@@ -1,26 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { AtmShell, HomeButtons } from "@/components/atm/AtmShell";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "SecureATM — Fingerprint & Card Login" },
+      { name: "description", content: "Fingerprint-based ATM system with card and biometric login." },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
-
 function Index() {
-  return <PlaceholderIndex />;
+  return (
+    <AtmShell>
+      <div className="text-center mb-10">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Welcome to SecureATM</h1>
+        <p className="mt-2 text-muted-foreground">Choose a login method to continue</p>
+      </div>
+      <HomeButtons />
+    </AtmShell>
+  );
 }
