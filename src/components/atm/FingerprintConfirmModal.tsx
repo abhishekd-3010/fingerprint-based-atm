@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ref, update } from "firebase/database";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Fingerprint } from "lucide-react";
 import { listenAtm } from "@/lib/atm";
+import { db } from "@/lib/firebase";
 
 type Props = {
   open: boolean;
@@ -11,27 +13,48 @@ type Props = {
   onSuccess: () => void;
 };
 
-// Re-scan modal for fingerprint users. Watches atm/currentUser for a match.
+// Re-scan modal for fingerprint users.
+// Fix: reset atm/currentUser to 0 on open so the ESP32's next write
+// (even with the same user id) is detected as a fresh transition (0 -> id).
+// Also track the last processed value to ignore duplicate identical events.
 export function FingerprintConfirmModal({ open, onClose, expectedUserId, onSuccess }: Props) {
   const [error, setError] = useState("");
+  const lastProcessedRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!open) { setError(""); return; }
-    // Snapshot of the currentUser when modal opens — only react to NEW scans.
-    let baseline: number | null = null;
+    if (!open) {
+      setError("");
+      lastProcessedRef.current = 0;
+      return;
+    }
+
+    // Reset ATM node so the next ESP32 scan is always seen as a NEW event,
+    // even if it's the same user id as before.
+    void update(ref(db, "atm"), {
+      currentUser: 0,
+      loginType: "",
+      authenticated: false,
+      pinEntered: "",
+    });
+    lastProcessedRef.current = 0;
+
     const unsub = listenAtm((s) => {
-      if (baseline === null) {
-        baseline = s.currentUser;
-        return;
-      }
-      if (s.loginType === "fingerprint" && s.currentUser !== 0 && s.currentUser !== baseline) {
-        if (s.currentUser === expectedUserId) {
-          onSuccess();
-        } else {
-          setError("Fingerprint does not match the logged-in user.");
-        }
+      const id = Number(s.currentUser);
+
+      // Ignore null / zero / unchanged repeats
+      if (!id || id === 0) return;
+      if (id === lastProcessedRef.current) return;
+      if (s.loginType !== "fingerprint") return;
+
+      lastProcessedRef.current = id;
+
+      if (id === expectedUserId) {
+        onSuccess();
+      } else {
+        setError("Fingerprint does not match the logged-in user.");
       }
     });
+
     return () => unsub();
   }, [open, expectedUserId, onSuccess]);
 
